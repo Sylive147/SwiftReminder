@@ -186,7 +186,7 @@ function createCountCard(card, index) {
   deleteBtn.classList.add("delete-btn");
   deleteBtn.title = "删除这张卡片";
 
-  const editBtn = createButton(isEditing ? "✓" : "编辑", () => {
+  const editBtn = createButton(isEditing ? "✓" : "✎", () => {
     if (!isEditing) {
       editingCardId = card.id;
       render();
@@ -211,8 +211,10 @@ function createCountCard(card, index) {
   if (isEditing) {
     editBtn.classList.add("confirm-btn");
     editBtn.title = "确认修改";
+    editBtn.setAttribute("aria-label", "确认修改");
   } else {
     editBtn.title = "编辑文本";
+    editBtn.setAttribute("aria-label", "编辑文本");
   }
 
   const textEl = document.createElement("div");
