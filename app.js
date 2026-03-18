@@ -1,4 +1,4 @@
-const cardsEl = document.getElementById("cards");
+﻿const cardsEl = document.getElementById("cards");
 const updatedAtEl = document.getElementById("updatedAt");
 
 const COOKIE_KEY = "cards_data";
@@ -8,6 +8,7 @@ const MAX_COUNT = 99;
 const BASE_COLOR = { r: 0, g: 242, b: 178 };
 const BLUE_STEP = 10;
 const REPO_UPDATED_AT = "2026-03-19 00:55:00";
+const APP_VERSION = "4507a74";
 
 let cards = [];
 let idSeed = 1;
@@ -121,7 +122,7 @@ function playPressAnimations(button, countEl) {
 function persistAndRender() {
   const ok = saveCardsToCookie();
   if (!ok) {
-    alert("保存失败：Cookie 写入失败。");
+    alert("淇濆瓨澶辫触锛欳ookie 鍐欏叆澶辫触銆?);
   }
   render();
 }
@@ -130,7 +131,7 @@ function updateTimestamp() {
   if (!updatedAtEl) {
     return;
   }
-  updatedAtEl.textContent = `仓库更新时间：${REPO_UPDATED_AT}`;
+  updatedAtEl.textContent = `仓库更新时间：${REPO_UPDATED_AT} · 版本：${APP_VERSION}`;
 }
 
 function createCountCard(card, index) {
@@ -166,7 +167,7 @@ function createCountCard(card, index) {
   });
   plusBtn.classList.add("plus-btn");
 
-  const deleteBtn = createButton("🗑", () => {
+  const deleteBtn = createButton("馃棏", () => {
     cards = cards.filter((item) => item.id !== card.id);
     if (editingCardId === card.id) {
       editingCardId = "";
@@ -174,10 +175,10 @@ function createCountCard(card, index) {
     persistAndRender();
   });
   deleteBtn.classList.add("delete-btn");
-  deleteBtn.title = "删除这张卡片";
-  deleteBtn.setAttribute("aria-label", "删除这张卡片");
+  deleteBtn.title = "鍒犻櫎杩欏紶鍗＄墖";
+  deleteBtn.setAttribute("aria-label", "鍒犻櫎杩欏紶鍗＄墖");
 
-  const editBtn = createButton(isEditing ? "✓" : "✎", () => {
+  const editBtn = createButton(isEditing ? "鉁? : "鉁?, () => {
     if (!isEditing) {
       editingCardId = card.id;
       render();
@@ -187,7 +188,7 @@ function createCountCard(card, index) {
     const inputEl = row.querySelector(".edit-input");
     const text = clipText((inputEl ? inputEl.value : "").trim());
     if (!text) {
-      alert("文本不能为空。");
+      alert("鏂囨湰涓嶈兘涓虹┖銆?);
       if (inputEl) {
         inputEl.focus();
       }
@@ -201,11 +202,11 @@ function createCountCard(card, index) {
   editBtn.classList.add("edit-btn");
   if (isEditing) {
     editBtn.classList.add("confirm-btn");
-    editBtn.title = "确认修改";
-    editBtn.setAttribute("aria-label", "确认修改");
+    editBtn.title = "纭淇敼";
+    editBtn.setAttribute("aria-label", "纭淇敼");
   } else {
-    editBtn.title = "编辑文本";
-    editBtn.setAttribute("aria-label", "编辑文本");
+    editBtn.title = "缂栬緫鏂囨湰";
+    editBtn.setAttribute("aria-label", "缂栬緫鏂囨湰");
   }
 
   const textEl = document.createElement("div");
@@ -216,7 +217,7 @@ function createCountCard(card, index) {
     input.type = "text";
     input.maxLength = MAX_TEXT_LENGTH;
     input.value = card.text;
-    input.placeholder = "请输入文本（最多30个中文字符）";
+    input.placeholder = "璇疯緭鍏ユ枃鏈紙鏈€澶?0涓腑鏂囧瓧绗︼級";
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         editBtn.click();
@@ -255,7 +256,7 @@ function createAddCard() {
 
   const input = document.createElement("input");
   input.type = "text";
-  input.placeholder = "输入文本后回车添加（最多30个中文字符）";
+  input.placeholder = "杈撳叆鏂囨湰鍚庡洖杞︽坊鍔狅紙鏈€澶?0涓腑鏂囧瓧绗︼級";
   input.maxLength = MAX_TEXT_LENGTH;
 
   const addBtn = document.createElement("button");
@@ -355,10 +356,10 @@ function render() {
 
 function createInitialCards() {
   return [
-    { id: makeId(), text: "设计主页布局", count: 8 },
-    { id: makeId(), text: "优化卡片交互动画", count: 6 },
-    { id: makeId(), text: "完善数据读取逻辑", count: 4 },
-    { id: makeId(), text: "准备示例JSON文件", count: 2 }
+    { id: makeId(), text: "璁捐涓婚〉甯冨眬", count: 8 },
+    { id: makeId(), text: "浼樺寲鍗＄墖浜や簰鍔ㄧ敾", count: 6 },
+    { id: makeId(), text: "瀹屽杽鏁版嵁璇诲彇閫昏緫", count: 4 },
+    { id: makeId(), text: "鍑嗗绀轰緥JSON鏂囦欢", count: 2 }
   ];
 }
 
