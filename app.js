@@ -6,7 +6,7 @@ const COOKIE_DAYS = 365;
 const MAX_TEXT_LENGTH = 30;
 const MAX_COUNT = 99;
 const BASE_COLOR = { r: 0, g: 242, b: 178 };
-const BLUE_STEP = 6;
+const BLUE_STEP = 10;
 const REPO_UPDATED_AT = "2026-03-19 00:55:00";
 
 let cards = [];
