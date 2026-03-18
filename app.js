@@ -176,7 +176,7 @@ function createCountCard(card, index) {
   });
   plusBtn.classList.add("plus-btn");
 
-  const deleteBtn = createButton("×", () => {
+  const deleteBtn = createButton("🗑", () => {
     cards = cards.filter((item) => item.id !== card.id);
     if (editingCardId === card.id) {
       editingCardId = "";
@@ -185,6 +185,7 @@ function createCountCard(card, index) {
   });
   deleteBtn.classList.add("delete-btn");
   deleteBtn.title = "删除这张卡片";
+  deleteBtn.setAttribute("aria-label", "删除这张卡片");
 
   const editBtn = createButton(isEditing ? "✓" : "✎", () => {
     if (!isEditing) {

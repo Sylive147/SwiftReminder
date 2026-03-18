@@ -166,7 +166,7 @@ body {
 }
 
 .delete-btn {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   color: #7a1022;
 }
@@ -314,7 +314,7 @@ body {
   }
 
   .delete-btn {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .card-spacer {
@@ -376,7 +376,7 @@ body {
     grid-column: 3;
     grid-row: 2;
     justify-self: start;
-    font-size: 22px;
+    font-size: 16px;
   }
 
   .add-card .count {
@@ -462,7 +462,7 @@ body {
     grid-column: 4;
     grid-row: 2;
     justify-self: start;
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .action-btn {
