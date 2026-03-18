@@ -1,0 +1,362 @@
+:root {
+  --page-bg: #5cc970;
+  --card-radius: 18px;
+  --card-width: min(720px, 94vw);
+  --card-edge-gap: 14px;
+  --card-btn-size: 72px;
+  --btn-bg: rgba(255, 255, 255, 0.9);
+  --btn-border: rgba(0, 60, 36, 0.22);
+  --btn-text: #084533;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--page-bg);
+  font-family: "微软雅黑", "Microsoft YaHei", "Segoe UI", "PingFang SC", Arial, sans-serif;
+  color: #063322;
+}
+
+.app {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 12px 28px;
+  gap: 16px;
+}
+
+.top-panel {
+  width: var(--card-width);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.path-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#pathInput {
+  flex: 1;
+  min-width: 180px;
+}
+
+.ui-control,
+.add-card input,
+.action-btn {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  padding: 0 14px;
+  font-size: 16px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  box-shadow: 0 2px 6px rgba(0, 35, 18, 0.12), 0 8px 18px rgba(0, 35, 18, 0.08);
+  transition: box-shadow 180ms ease, transform 180ms ease, filter 180ms ease;
+}
+
+.ui-btn,
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.ui-btn:hover,
+.action-btn:hover {
+  filter: brightness(0.97);
+  box-shadow: 0 4px 10px rgba(0, 35, 18, 0.16), 0 12px 24px rgba(0, 35, 18, 0.12);
+  transform: translateY(-1px);
+}
+
+.hint {
+  font-size: 13px;
+  color: rgba(0, 44, 30, 0.82);
+}
+
+.cards {
+  width: var(--card-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.card {
+  width: 100%;
+  min-height: calc(var(--card-btn-size) + var(--card-edge-gap) * 2);
+  border-radius: var(--card-radius);
+  display: grid;
+  grid-template-columns: var(--card-btn-size) minmax(0, 1fr) auto var(--card-btn-size) var(--card-btn-size);
+  align-items: center;
+  column-gap: var(--card-edge-gap);
+  row-gap: 8px;
+  padding: var(--card-edge-gap);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+  color: #00381e;
+  will-change: transform;
+  transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease, box-shadow 200ms ease;
+}
+
+.card.is-moving {
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
+}
+
+.card.is-new {
+  animation: card-in 260ms ease-out;
+}
+
+@keyframes card-in {
+  from {
+    transform: scale(0.97);
+    opacity: 0.3;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.text {
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.count {
+  min-width: 44px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 24px;
+  padding: 0 6px;
+}
+
+.count.pop {
+  animation: count-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.action-btn {
+  width: var(--card-btn-size);
+  border-radius: 12px;
+  font-size: 32px;
+  line-height: 1;
+  height: var(--card-btn-size);
+}
+
+.action-btn.press-pop {
+  animation: btn-pop 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.delete-btn {
+  font-size: 26px;
+  font-weight: 700;
+  color: #7a1022;
+}
+
+.card-spacer {
+  width: var(--card-btn-size);
+  height: var(--card-btn-size);
+}
+
+@keyframes btn-pop {
+  0% {
+    transform: scale(1);
+  }
+  28% {
+    transform: scale(0.82);
+  }
+  62% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes count-pop {
+  0% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(1.28);
+  }
+  68% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.action-btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 5px rgba(0, 35, 18, 0.13), 0 6px 14px rgba(0, 35, 18, 0.09);
+}
+
+.add-card {
+  border: 2px dashed rgba(0, 60, 36, 0.3);
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.add-card input {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  padding: 0 10px;
+}
+
+@media (max-width: 560px) {
+  :root {
+    --card-edge-gap: 10px;
+    --card-btn-size: 50px;
+  }
+
+  .app {
+    padding: 12px 10px 20px;
+    gap: 12px;
+  }
+
+  .path-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  #pathInput {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .ui-btn {
+    flex: 1 1 calc(33.33% - 6px);
+    min-width: 108px;
+    font-size: 14px;
+    height: 42px;
+    padding: 0 10px;
+  }
+
+  .hint {
+    font-size: 12px;
+  }
+
+  .card {
+    grid-template-columns: var(--card-btn-size) minmax(0, 1fr) auto var(--card-btn-size) var(--card-btn-size);
+    min-height: calc(var(--card-btn-size) + var(--card-edge-gap) * 2);
+    border-radius: 14px;
+  }
+
+  .text {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .count {
+    min-width: 34px;
+    font-size: 20px;
+    padding: 0 4px;
+  }
+
+  .action-btn {
+    width: var(--card-btn-size);
+    height: var(--card-btn-size);
+    font-size: 28px;
+    border-radius: 10px;
+  }
+
+  .delete-btn {
+    font-size: 24px;
+  }
+
+  .card-spacer {
+    width: var(--card-btn-size);
+    height: var(--card-btn-size);
+  }
+}
+
+@media (max-width: 400px) {
+  :root {
+    --card-edge-gap: 8px;
+    --card-btn-size: 44px;
+  }
+
+  .ui-btn {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .card {
+    grid-template-columns: var(--card-btn-size) minmax(0, 1fr) auto var(--card-btn-size);
+    grid-template-rows: auto auto;
+    row-gap: 6px;
+  }
+
+  .minus-btn {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .text {
+    grid-column: 2 / 5;
+    grid-row: 1;
+    font-size: 14px;
+  }
+
+  .count {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+    align-self: center;
+    font-size: 18px;
+  }
+
+  .plus-btn {
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  .delete-btn {
+    grid-column: 4;
+    grid-row: 2;
+    justify-self: end;
+    font-size: 22px;
+  }
+
+  .add-card .count {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .add-card .text {
+    grid-column: 2 / 5;
+    grid-row: 1;
+  }
+
+  .add-card .action-btn {
+    grid-column: 4;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  .card-spacer {
+    display: none;
+  }
+}
