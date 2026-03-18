@@ -10,6 +10,7 @@ const BLUE_STEP = 6;
 
 let cards = [];
 let idSeed = 1;
+let editingCardId = "";
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -148,6 +149,11 @@ function createCountCard(card, index) {
   row.dataset.id = card.id;
   row.style.backgroundColor = colorForIndex(index);
 
+  const isEditing = editingCardId === card.id;
+  if (isEditing) {
+    row.classList.add("is-editing");
+  }
+
   const countEl = document.createElement("div");
   countEl.className = "count";
   countEl.textContent = String(card.count);
@@ -172,19 +178,74 @@ function createCountCard(card, index) {
 
   const deleteBtn = createButton("×", () => {
     cards = cards.filter((item) => item.id !== card.id);
+    if (editingCardId === card.id) {
+      editingCardId = "";
+    }
     persistAndRender();
   });
   deleteBtn.classList.add("delete-btn");
   deleteBtn.title = "删除这张卡片";
 
+  const editBtn = createButton(isEditing ? "✓" : "编辑", () => {
+    if (!isEditing) {
+      editingCardId = card.id;
+      render();
+      return;
+    }
+
+    const inputEl = row.querySelector(".edit-input");
+    const text = clipText((inputEl ? inputEl.value : "").trim());
+    if (!text) {
+      alert("文本不能为空。");
+      if (inputEl) {
+        inputEl.focus();
+      }
+      return;
+    }
+
+    card.text = text;
+    editingCardId = "";
+    persistAndRender();
+  });
+  editBtn.classList.add("edit-btn");
+  if (isEditing) {
+    editBtn.classList.add("confirm-btn");
+    editBtn.title = "确认修改";
+  } else {
+    editBtn.title = "编辑文本";
+  }
+
   const textEl = document.createElement("div");
   textEl.className = "text";
-  textEl.textContent = card.text;
+  if (isEditing) {
+    const input = document.createElement("input");
+    input.className = "edit-input";
+    input.type = "text";
+    input.maxLength = MAX_TEXT_LENGTH;
+    input.value = card.text;
+    input.placeholder = "请输入文本（最多30个中文字符）";
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        editBtn.click();
+      } else if (event.key === "Escape") {
+        editingCardId = "";
+        render();
+      }
+    });
+    textEl.appendChild(input);
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 0);
+  } else {
+    textEl.textContent = card.text;
+  }
 
   row.appendChild(minusBtn);
   row.appendChild(textEl);
   row.appendChild(countEl);
   row.appendChild(plusBtn);
+  row.appendChild(editBtn);
   row.appendChild(deleteBtn);
   return row;
 }
@@ -217,7 +278,7 @@ function createAddCard() {
     cards.push({ id: makeId(), text, count: 1 });
     input.value = "";
     saveCardsToCookie();
-    render({ newCard: true });
+    render();
   }
 
   input.addEventListener("keydown", (event) => {
@@ -236,9 +297,12 @@ function createAddCard() {
   row.appendChild(document.createElement("div"));
   row.appendChild(addBtn);
 
-  const spacer = document.createElement("div");
-  spacer.className = "card-spacer";
-  row.appendChild(spacer);
+  const spacerA = document.createElement("div");
+  spacerA.className = "card-spacer";
+  const spacerB = document.createElement("div");
+  spacerB.className = "card-spacer";
+  row.appendChild(spacerA);
+  row.appendChild(spacerB);
   return row;
 }
 
