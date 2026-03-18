@@ -7,10 +7,14 @@ const MAX_TEXT_LENGTH = 30;
 const MAX_COUNT = 99;
 const BASE_COLOR = { r: 0, g: 255, b: 190 };
 const BLUE_STEP = 6;
+const REPO_OWNER = "Sylive147";
+const REPO_NAME = "SwiftReminder";
+const REPO_BRANCH = "main";
 
 let cards = [];
 let idSeed = 1;
 let editingCardId = "";
+let repoUpdatedAtText = "仓库更新时间：加载中...";
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -140,7 +144,28 @@ function updateTimestamp() {
   if (!updatedAtEl) {
     return;
   }
-  updatedAtEl.textContent = `更新时间：${formatTimestamp(new Date())}`;
+  updatedAtEl.textContent = repoUpdatedAtText;
+}
+
+async function refreshRepoUpdatedAt() {
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/${REPO_BRANCH}`;
+  try {
+    const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const commitDate = payload?.commit?.committer?.date || payload?.commit?.author?.date;
+    if (!commitDate) {
+      throw new Error("missing commit date");
+    }
+
+    repoUpdatedAtText = `仓库更新时间：${formatTimestamp(new Date(commitDate))}`;
+  } catch (_error) {
+    repoUpdatedAtText = "仓库更新时间：获取失败";
+  }
+  updateTimestamp();
 }
 
 function createCountCard(card, index) {
@@ -378,3 +403,4 @@ if (cards.length === 0) {
   saveCardsToCookie();
 }
 render();
+refreshRepoUpdatedAt();
