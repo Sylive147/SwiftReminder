@@ -3,6 +3,8 @@ const updatedAtEl = document.getElementById("updatedAt");
 
 const COOKIE_KEY = "cards_data";
 const COOKIE_DAYS = 365;
+const META_COOKIE_KEY = "repo_meta_cache";
+const META_CACHE_DAYS = 7;
 const MAX_TEXT_LENGTH = 30;
 const MAX_COUNT = 99;
 const BASE_COLOR = { r: 0, g: 242, b: 178 };
@@ -10,6 +12,7 @@ const BLUE_STEP = 10;
 const REPO_OWNER = "Sylive147";
 const REPO_NAME = "SwiftReminder";
 const REPO_BRANCH = "main";
+const META_FETCH_TIMEOUT_MS = 5000;
 
 let cards = [];
 let idSeed = 1;
@@ -147,12 +150,59 @@ function formatTimestamp(date) {
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 }
 
+function readCachedRepoMeta() {
+  const raw = getCookie(META_COOKIE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const cache = JSON.parse(raw);
+    if (cache && typeof cache.text === "string" && cache.text) {
+      return cache.text;
+    }
+  } catch (_error) {
+    return null;
+  }
+  return null;
+}
+
+function writeCachedRepoMeta(text) {
+  try {
+    setCookie(META_COOKIE_KEY, JSON.stringify({ text }), META_CACHE_DAYS);
+  } catch (_error) {
+    return;
+  }
+}
+
+function withTimeout(promise, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("timeout"));
+    }, timeoutMs);
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
 async function refreshRepoMeta() {
   const endpoint = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/${REPO_BRANCH}`;
+
   try {
-    const response = await fetch(endpoint, {
-      headers: { Accept: "application/vnd.github+json" }
-    });
+    const response = await withTimeout(
+      fetch(endpoint, {
+        headers: { Accept: "application/vnd.github+json" }
+      }),
+      META_FETCH_TIMEOUT_MS
+    );
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -166,8 +216,14 @@ async function refreshRepoMeta() {
     }
 
     repoUpdatedAtText = `仓库更新时间：${formatTimestamp(new Date(commitDate))} · 版本：${sha}`;
+    writeCachedRepoMeta(repoUpdatedAtText);
   } catch (_error) {
-    repoUpdatedAtText = "仓库更新时间：获取失败 · 版本：获取失败";
+    const cached = readCachedRepoMeta();
+    if (cached) {
+      repoUpdatedAtText = `${cached}（缓存）`;
+    } else {
+      repoUpdatedAtText = "仓库更新时间：获取失败 · 版本：获取失败";
+    }
   }
   updateTimestamp();
 }
@@ -406,5 +462,11 @@ if (cards.length === 0) {
   cards = createInitialCards();
   saveCardsToCookie();
 }
+
+const cachedMetaText = readCachedRepoMeta();
+if (cachedMetaText) {
+  repoUpdatedAtText = `${cachedMetaText}（缓存）`;
+}
+
 render();
 refreshRepoMeta();
