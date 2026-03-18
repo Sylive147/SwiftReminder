@@ -1,4 +1,5 @@
 const cardsEl = document.getElementById("cards");
+const updatedAtEl = document.getElementById("updatedAt");
 
 const COOKIE_KEY = "cards_data";
 const COOKIE_DAYS = 365;
@@ -122,6 +123,23 @@ function persistAndRender() {
     alert("保存失败：Cookie 写入失败。");
   }
   render();
+}
+
+function formatTimestamp(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const second = String(date.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
+function updateTimestamp() {
+  if (!updatedAtEl) {
+    return;
+  }
+  updatedAtEl.textContent = `更新时间：${formatTimestamp(new Date())}`;
 }
 
 function createCountCard(card, index) {
@@ -275,6 +293,7 @@ function render() {
     cardsEl.appendChild(createCountCard(card, index + 1));
   });
   animateFlip(beforePositions);
+  updateTimestamp();
 }
 
 function createInitialCards() {
