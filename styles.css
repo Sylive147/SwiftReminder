@@ -520,3 +520,145 @@ body {
     padding: 8px 8px 12px;
   }
 }
+
+.hidden {
+  display: none !important;
+}
+
+.settings-fab {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 35, 18, 0.2);
+}
+
+.settings-panel {
+  position: fixed;
+  top: 74px;
+  right: 18px;
+  z-index: 21;
+  width: min(300px, calc(100vw - 24px));
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 60, 36, 0.2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  padding: 12px;
+}
+
+.settings-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.setting-label {
+  font-size: 14px;
+  color: #1f4c35;
+}
+
+.color-swatch {
+  width: 120px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 60, 36, 0.25);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.picker-overlay {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 60, 36, 0.18);
+  background: #f8fff9;
+  padding: 10px;
+}
+
+.picker-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f5838;
+  margin-bottom: 8px;
+}
+
+.picker-preview {
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 60, 36, 0.2);
+  margin-bottom: 10px;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 20px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.slider-row em {
+  font-style: normal;
+  text-align: right;
+  color: #1d5d3f;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+  accent-color: #25a86f;
+}
+
+.picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.mini-btn {
+  min-width: 58px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid var(--btn-border);
+  background: #fff;
+  color: #0f5236;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mini-btn.primary {
+  background: #e9fff2;
+}
+
+@media (max-width: 560px) {
+  .settings-fab {
+    top: 12px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 22px;
+  }
+
+  .settings-panel {
+    top: 62px;
+    right: 10px;
+    width: min(300px, calc(100vw - 20px));
+  }
+}

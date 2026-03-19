@@ -8,6 +8,46 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <button id="settingsBtn" class="settings-fab" type="button" aria-label="打开设置" title="设置">⚙</button>
+
+  <aside id="settingsPanel" class="settings-panel hidden" aria-label="颜色设置">
+    <div class="settings-title">颜色设置</div>
+    <div class="setting-row">
+      <span class="setting-label">卡片基色</span>
+      <button id="cardColorSwatch" class="color-swatch" type="button" aria-label="选择卡片颜色"></button>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">页面背景</span>
+      <button id="bgColorSwatch" class="color-swatch" type="button" aria-label="选择背景颜色"></button>
+    </div>
+
+    <div id="pickerOverlay" class="picker-overlay hidden">
+      <div class="picker-header" id="pickerTitle">颜色调节</div>
+      <div id="pickerPreview" class="picker-preview"></div>
+
+      <label class="slider-row">
+        <span>R</span>
+        <input id="sliderR" type="range" min="0" max="255" />
+        <em id="valueR">0</em>
+      </label>
+      <label class="slider-row">
+        <span>G</span>
+        <input id="sliderG" type="range" min="0" max="255" />
+        <em id="valueG">0</em>
+      </label>
+      <label class="slider-row">
+        <span>B</span>
+        <input id="sliderB" type="range" min="0" max="255" />
+        <em id="valueB">0</em>
+      </label>
+
+      <div class="picker-actions">
+        <button id="pickerCancel" class="mini-btn" type="button">取消</button>
+        <button id="pickerApply" class="mini-btn primary" type="button">确定</button>
+      </div>
+    </div>
+  </aside>
+
   <main class="app">
     <section id="cards" class="cards" aria-live="polite"></section>
   </main>

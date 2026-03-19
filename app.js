@@ -1,26 +1,57 @@
 const cardsEl = document.getElementById("cards");
 const updatedAtEl = document.getElementById("updatedAt");
 
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+const cardColorSwatch = document.getElementById("cardColorSwatch");
+const bgColorSwatch = document.getElementById("bgColorSwatch");
+const pickerOverlay = document.getElementById("pickerOverlay");
+const pickerTitle = document.getElementById("pickerTitle");
+const pickerPreview = document.getElementById("pickerPreview");
+const sliderR = document.getElementById("sliderR");
+const sliderG = document.getElementById("sliderG");
+const sliderB = document.getElementById("sliderB");
+const valueR = document.getElementById("valueR");
+const valueG = document.getElementById("valueG");
+const valueB = document.getElementById("valueB");
+const pickerCancel = document.getElementById("pickerCancel");
+const pickerApply = document.getElementById("pickerApply");
+
 const COOKIE_KEY = "cards_data";
 const COOKIE_DAYS = 365;
 const META_COOKIE_KEY = "repo_meta_cache";
 const META_CACHE_DAYS = 7;
+const THEME_COOKIE_KEY = "theme_config";
 const MAX_TEXT_LENGTH = 30;
 const MAX_COUNT = 99;
-const BASE_COLOR = { r: 0, g: 242, b: 178 };
 const BLUE_STEP = 10;
 const REPO_OWNER = "Sylive147";
 const REPO_NAME = "SwiftReminder";
 const REPO_BRANCH = "main";
 const META_FETCH_TIMEOUT_MS = 5000;
 
+const DEFAULT_THEME = {
+  cardBase: { r: 0, g: 242, b: 178 },
+  background: { r: 92, g: 201, b: 112 }
+};
+
 let cards = [];
 let idSeed = 1;
 let editingCardId = "";
 let repoUpdatedAtText = "仓库更新时间：加载中... · 版本：加载中...";
+let theme = {
+  cardBase: { ...DEFAULT_THEME.cardBase },
+  background: { ...DEFAULT_THEME.background }
+};
+let activePicker = "";
+let tempColor = { r: 0, g: 0, b: 0 };
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function clipText(text, maxLength = MAX_TEXT_LENGTH) {
+  return Array.from(text).slice(0, maxLength).join("");
 }
 
 function makeId() {
@@ -29,33 +60,19 @@ function makeId() {
   return id;
 }
 
-function clipText(text, maxLength = MAX_TEXT_LENGTH) {
-  return Array.from(text).slice(0, maxLength).join("");
+function rgbToCss(rgb) {
+  return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
 }
 
-function normalizeEntry(entry) {
-  if (!entry || typeof entry !== "object") {
-    return null;
+function normalizeRgb(obj, fallback) {
+  if (!obj || typeof obj !== "object") {
+    return { ...fallback };
   }
-
-  const text = typeof entry.text === "string" ? clipText(entry.text.trim()) : "";
-  const count = Number(entry.count);
-  if (!text || !Number.isInteger(count) || count <= 0) {
-    return null;
-  }
-
-  return { id: makeId(), text, count: Math.min(count, MAX_COUNT) };
-}
-
-function normalizeData(raw) {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  return raw.map(normalizeEntry).filter(Boolean);
-}
-
-function toSerializableData() {
-  return cards.map((card) => ({ text: card.text, count: card.count }));
+  return {
+    r: clamp(Number(obj.r), 0, 255),
+    g: clamp(Number(obj.g), 0, 255),
+    b: clamp(Number(obj.b), 0, 255)
+  };
 }
 
 function setCookie(name, value, days) {
@@ -76,6 +93,106 @@ function getCookie(name) {
   return "";
 }
 
+function saveThemeToCookie() {
+  try {
+    setCookie(THEME_COOKIE_KEY, JSON.stringify(theme), COOKIE_DAYS);
+  } catch (_error) {
+    return;
+  }
+}
+
+function loadThemeFromCookie() {
+  const raw = getCookie(THEME_COOKIE_KEY);
+  if (!raw) {
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    theme = {
+      cardBase: normalizeRgb(parsed.cardBase, DEFAULT_THEME.cardBase),
+      background: normalizeRgb(parsed.background, DEFAULT_THEME.background)
+    };
+  } catch (_error) {
+    theme = {
+      cardBase: { ...DEFAULT_THEME.cardBase },
+      background: { ...DEFAULT_THEME.background }
+    };
+  }
+}
+
+function applyTheme() {
+  document.documentElement.style.setProperty("--page-bg", rgbToCss(theme.background));
+  cardColorSwatch.style.background = rgbToCss(theme.cardBase);
+  bgColorSwatch.style.background = rgbToCss(theme.background);
+}
+
+function toggleSettingsPanel() {
+  settingsPanel.classList.toggle("hidden");
+  if (settingsPanel.classList.contains("hidden")) {
+    pickerOverlay.classList.add("hidden");
+  }
+}
+
+function syncPickerPreview() {
+  tempColor = {
+    r: Number(sliderR.value),
+    g: Number(sliderG.value),
+    b: Number(sliderB.value)
+  };
+  valueR.textContent = String(tempColor.r);
+  valueG.textContent = String(tempColor.g);
+  valueB.textContent = String(tempColor.b);
+  pickerPreview.style.background = rgbToCss(tempColor);
+}
+
+function openPicker(type) {
+  activePicker = type;
+  const source = type === "card" ? theme.cardBase : theme.background;
+  tempColor = { ...source };
+  sliderR.value = String(tempColor.r);
+  sliderG.value = String(tempColor.g);
+  sliderB.value = String(tempColor.b);
+  pickerTitle.textContent = type === "card" ? "卡片颜色调节" : "背景颜色调节";
+  syncPickerPreview();
+  pickerOverlay.classList.remove("hidden");
+}
+
+function applyPickerColor() {
+  if (activePicker === "card") {
+    theme.cardBase = { ...tempColor };
+  } else if (activePicker === "background") {
+    theme.background = { ...tempColor };
+  }
+  saveThemeToCookie();
+  applyTheme();
+  render();
+  pickerOverlay.classList.add("hidden");
+}
+
+function normalizeEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const text = typeof entry.text === "string" ? clipText(entry.text.trim()) : "";
+  const count = Number(entry.count);
+  if (!text || !Number.isInteger(count) || count <= 0) {
+    return null;
+  }
+  return { id: makeId(), text, count: Math.min(count, MAX_COUNT) };
+}
+
+function normalizeData(raw) {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.map(normalizeEntry).filter(Boolean);
+}
+
+function toSerializableData() {
+  return cards.map((card) => ({ text: card.text, count: card.count }));
+}
+
 function saveCardsToCookie() {
   try {
     setCookie(COOKIE_KEY, JSON.stringify(toSerializableData()), COOKIE_DAYS);
@@ -90,7 +207,6 @@ function loadCardsFromCookie() {
   if (!raw) {
     return [];
   }
-
   try {
     return normalizeData(JSON.parse(raw));
   } catch (_error) {
@@ -99,8 +215,8 @@ function loadCardsFromCookie() {
 }
 
 function colorForIndex(index) {
-  const blue = clamp(BASE_COLOR.b - index * BLUE_STEP, 0, 255);
-  return `rgb(${BASE_COLOR.r}, ${BASE_COLOR.g}, ${blue})`;
+  const blue = clamp(theme.cardBase.b - index * BLUE_STEP, 0, 255);
+  return `rgb(${theme.cardBase.r}, ${theme.cardBase.g}, ${blue})`;
 }
 
 function sortCards() {
@@ -134,10 +250,9 @@ function persistAndRender() {
 }
 
 function updateTimestamp() {
-  if (!updatedAtEl) {
-    return;
+  if (updatedAtEl) {
+    updatedAtEl.textContent = repoUpdatedAtText;
   }
-  updatedAtEl.textContent = repoUpdatedAtText;
 }
 
 function formatTimestamp(date) {
@@ -155,7 +270,6 @@ function readCachedRepoMeta() {
   if (!raw) {
     return null;
   }
-
   try {
     const cache = JSON.parse(raw);
     if (cache && typeof cache.text === "string" && cache.text) {
@@ -177,9 +291,7 @@ function writeCachedRepoMeta(text) {
 
 function withTimeout(promise, timeoutMs) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error("timeout"));
-    }, timeoutMs);
+    const timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
     promise
       .then((value) => {
         clearTimeout(timer);
@@ -194,36 +306,25 @@ function withTimeout(promise, timeoutMs) {
 
 async function refreshRepoMeta() {
   const endpoint = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/${REPO_BRANCH}`;
-
   try {
     const response = await withTimeout(
-      fetch(endpoint, {
-        headers: { Accept: "application/vnd.github+json" }
-      }),
+      fetch(endpoint, { headers: { Accept: "application/vnd.github+json" } }),
       META_FETCH_TIMEOUT_MS
     );
-
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-
     const payload = await response.json();
     const commitDate = payload?.commit?.committer?.date || payload?.commit?.author?.date;
     const sha = payload?.sha ? String(payload.sha).slice(0, 7) : "";
-
     if (!commitDate || !sha) {
       throw new Error("missing commit info");
     }
-
     repoUpdatedAtText = `仓库更新时间：${formatTimestamp(new Date(commitDate))} · 版本：${sha}`;
     writeCachedRepoMeta(repoUpdatedAtText);
   } catch (_error) {
     const cached = readCachedRepoMeta();
-    if (cached) {
-      repoUpdatedAtText = `${cached}（缓存）`;
-    } else {
-      repoUpdatedAtText = "仓库更新时间：获取失败 · 版本：获取失败";
-    }
+    repoUpdatedAtText = cached ? `${cached}（缓存）` : "仓库更新时间：获取失败 · 版本：获取失败";
   }
   updateTimestamp();
 }
@@ -278,7 +379,6 @@ function createCountCard(card, index) {
       render();
       return;
     }
-
     const inputEl = row.querySelector(".edit-input");
     const text = clipText((inputEl ? inputEl.value : "").trim());
     if (!text) {
@@ -288,7 +388,6 @@ function createCountCard(card, index) {
       }
       return;
     }
-
     card.text = text;
     editingCardId = "";
     persistAndRender();
@@ -408,7 +507,6 @@ function animateFlip(beforePositions) {
     const afterRect = node.getBoundingClientRect();
     const dx = beforeRect.left - afterRect.left;
     const dy = beforeRect.top - afterRect.top;
-
     if (dx !== 0 || dy !== 0) {
       node.style.zIndex = "2";
       node.classList.add("is-moving");
@@ -457,11 +555,39 @@ function createInitialCards() {
   ];
 }
 
+function bindSettingEvents() {
+  settingsBtn.addEventListener("click", toggleSettingsPanel);
+  cardColorSwatch.addEventListener("click", () => openPicker("card"));
+  bgColorSwatch.addEventListener("click", () => openPicker("background"));
+  sliderR.addEventListener("input", syncPickerPreview);
+  sliderG.addEventListener("input", syncPickerPreview);
+  sliderB.addEventListener("input", syncPickerPreview);
+  pickerCancel.addEventListener("click", () => {
+    pickerOverlay.classList.add("hidden");
+  });
+  pickerApply.addEventListener("click", applyPickerColor);
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+    if (!settingsPanel.contains(target) && target !== settingsBtn) {
+      settingsPanel.classList.add("hidden");
+      pickerOverlay.classList.add("hidden");
+    }
+  });
+}
+
 cards = loadCardsFromCookie();
 if (cards.length === 0) {
   cards = createInitialCards();
   saveCardsToCookie();
 }
+
+loadThemeFromCookie();
+applyTheme();
+bindSettingEvents();
 
 const cachedMetaText = readCachedRepoMeta();
 if (cachedMetaText) {
