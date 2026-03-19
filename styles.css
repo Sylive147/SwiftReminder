@@ -114,9 +114,9 @@ body {
   padding: var(--card-edge-gap);
   box-shadow:
     0 18px 36px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.22),
     0 0 26px rgba(224, 255, 248, 0.38);
   color: #00381e;
   will-change: transform;
@@ -135,13 +135,13 @@ body {
 .card::before {
   content: "";
   position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 8px;
-  height: 42%;
-  border-radius: 12px;
+  inset: 0;
+  border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.06) 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 36%, rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.06));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   mix-blend-mode: screen;
 }
 
