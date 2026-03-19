@@ -1,4 +1,5 @@
 :root {
+  --top-safe-area: env(safe-area-inset-top, 0px);
   --page-bg-start: #216f96;
   --page-bg-end: #1f966d;
   --card-gloss-top: rgba(255, 255, 255, 0.26);
@@ -11,7 +12,7 @@
   --card-btn-size: 72px;
   --settings-fab-top: 18px;
   --settings-fab-size: 48px;
-  --settings-safe-gap: 12px;
+  --settings-safe-gap: 16px;
   --btn-bg: rgba(255, 255, 255, 0.9);
   --btn-border: rgba(0, 60, 36, 0.22);
   --btn-text: #084533;
@@ -39,7 +40,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(var(--settings-fab-top) + var(--settings-fab-size) + var(--settings-safe-gap)) 12px 28px;
+  padding: calc(var(--top-safe-area) + var(--settings-fab-top) + var(--settings-fab-size) + var(--settings-safe-gap)) 12px 28px;
   gap: 16px;
 }
 
@@ -288,7 +289,7 @@ body {
 
 .settings-fab {
   position: fixed;
-  top: var(--settings-fab-top);
+  top: calc(var(--top-safe-area) + var(--settings-fab-top));
   right: 18px;
   z-index: 20;
   width: var(--settings-fab-size);
@@ -461,6 +462,7 @@ body {
     --card-btn-size: 50px;
     --settings-fab-top: 12px;
     --settings-fab-size: 44px;
+    --settings-safe-gap: 18px;
   }
 
   .app {
