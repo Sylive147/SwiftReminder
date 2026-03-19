@@ -102,6 +102,8 @@ body {
 
 .card {
   width: 100%;
+  position: relative;
+  overflow: hidden;
   min-height: calc(var(--card-btn-size) + var(--card-edge-gap) * 2);
   border-radius: var(--card-radius);
   display: grid;
@@ -111,17 +113,36 @@ body {
   row-gap: 8px;
   padding: var(--card-edge-gap);
   box-shadow:
-    0 14px 30px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.18),
-    0 0 18px rgba(255, 255, 255, 0.18);
+    0 18px 36px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.36),
+    0 0 26px rgba(224, 255, 248, 0.38);
   color: #00381e;
   will-change: transform;
   transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease, box-shadow 200ms ease;
 }
 
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
 .card.is-moving {
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 8px;
+  height: 42%;
+  border-radius: 12px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.06) 100%);
+  mix-blend-mode: screen;
 }
 
 .card.is-new {
