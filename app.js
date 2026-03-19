@@ -16,6 +16,7 @@ const valueG = document.getElementById("valueG");
 const valueB = document.getElementById("valueB");
 const pickerCancel = document.getElementById("pickerCancel");
 const pickerApply = document.getElementById("pickerApply");
+const resetThemeBtn = document.getElementById("resetThemeBtn");
 
 const COOKIE_KEY = "cards_data";
 const COOKIE_DAYS = 365;
@@ -32,7 +33,8 @@ const META_FETCH_TIMEOUT_MS = 5000;
 
 const DEFAULT_THEME = {
   cardBase: { r: 0, g: 242, b: 178 },
-  background: { r: 92, g: 201, b: 112 }
+  background: { r: 92, g: 201, b: 112 },
+  useGradient: true
 };
 
 let cards = [];
@@ -41,7 +43,8 @@ let editingCardId = "";
 let repoUpdatedAtText = "仓库更新时间：加载中... · 版本：加载中...";
 let theme = {
   cardBase: { ...DEFAULT_THEME.cardBase },
-  background: { ...DEFAULT_THEME.background }
+  background: { ...DEFAULT_THEME.background },
+  useGradient: DEFAULT_THEME.useGradient
 };
 let activePicker = "";
 let tempColor = { r: 0, g: 0, b: 0 };
@@ -110,12 +113,14 @@ function loadThemeFromCookie() {
     const parsed = JSON.parse(raw);
     theme = {
       cardBase: normalizeRgb(parsed.cardBase, DEFAULT_THEME.cardBase),
-      background: normalizeRgb(parsed.background, DEFAULT_THEME.background)
+      background: normalizeRgb(parsed.background, DEFAULT_THEME.background),
+      useGradient: typeof parsed.useGradient === "boolean" ? parsed.useGradient : DEFAULT_THEME.useGradient
     };
   } catch (_error) {
     theme = {
       cardBase: { ...DEFAULT_THEME.cardBase },
-      background: { ...DEFAULT_THEME.background }
+      background: { ...DEFAULT_THEME.background },
+      useGradient: DEFAULT_THEME.useGradient
     };
   }
 }
@@ -160,6 +165,7 @@ function openPicker(type) {
 function applyPickerColor() {
   if (activePicker === "card") {
     theme.cardBase = { ...tempColor };
+    theme.useGradient = false;
   } else if (activePicker === "background") {
     theme.background = { ...tempColor };
   }
@@ -215,7 +221,7 @@ function loadCardsFromCookie() {
 }
 
 function colorForIndex(index) {
-  const blue = clamp(theme.cardBase.b - index * BLUE_STEP, 0, 255);
+  const blue = theme.useGradient ? clamp(theme.cardBase.b - index * BLUE_STEP, 0, 255) : theme.cardBase.b;
   return `rgb(${theme.cardBase.r}, ${theme.cardBase.g}, ${blue})`;
 }
 
@@ -566,6 +572,17 @@ function bindSettingEvents() {
     pickerOverlay.classList.add("hidden");
   });
   pickerApply.addEventListener("click", applyPickerColor);
+  resetThemeBtn.addEventListener("click", () => {
+    theme = {
+      cardBase: { ...DEFAULT_THEME.cardBase },
+      background: { ...DEFAULT_THEME.background },
+      useGradient: DEFAULT_THEME.useGradient
+    };
+    saveThemeToCookie();
+    applyTheme();
+    render();
+    pickerOverlay.classList.add("hidden");
+  });
 
   document.addEventListener("click", (event) => {
     const target = event.target;

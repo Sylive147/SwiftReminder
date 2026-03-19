@@ -568,6 +568,19 @@ body {
   margin-bottom: 10px;
 }
 
+.reset-theme-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 60, 36, 0.24);
+  background: #f4fff8;
+  color: #12563a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
 .setting-label {
   font-size: 14px;
   color: #1f4c35;
