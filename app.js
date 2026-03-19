@@ -36,11 +36,11 @@ const REPO_BRANCH = "main";
 const META_FETCH_TIMEOUT_MS = 5000;
 
 const DEFAULT_THEME = {
-  cardStart: { r: 196, g: 241, b: 232 },
+  cardStart: { r: 146, g: 241, b: 232 },
   cardEnd: { r: 168, g: 224, b: 209 },
   backgroundStart: { r: 33, g: 111, b: 150 },
   backgroundEnd: { r: 31, g: 150, b: 109 },
-  glossStrength: 62
+  glossStrength: 40
 };
 
 let cards = [];
