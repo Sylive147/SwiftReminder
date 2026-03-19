@@ -7,6 +7,8 @@ const cardStartColorSwatch = document.getElementById("cardStartColorSwatch");
 const cardEndColorSwatch = document.getElementById("cardEndColorSwatch");
 const bgStartColorSwatch = document.getElementById("bgStartColorSwatch");
 const bgEndColorSwatch = document.getElementById("bgEndColorSwatch");
+const glossSlider = document.getElementById("glossSlider");
+const glossValue = document.getElementById("glossValue");
 const pickerOverlay = document.getElementById("pickerOverlay");
 const pickerTitle = document.getElementById("pickerTitle");
 const pickerPreview = document.getElementById("pickerPreview");
@@ -37,7 +39,8 @@ const DEFAULT_THEME = {
   cardStart: { r: 196, g: 241, b: 232 },
   cardEnd: { r: 168, g: 224, b: 209 },
   backgroundStart: { r: 33, g: 111, b: 150 },
-  backgroundEnd: { r: 31, g: 150, b: 109 }
+  backgroundEnd: { r: 31, g: 150, b: 109 },
+  glossStrength: 62
 };
 
 let cards = [];
@@ -48,7 +51,8 @@ let theme = {
   cardStart: { ...DEFAULT_THEME.cardStart },
   cardEnd: { ...DEFAULT_THEME.cardEnd },
   backgroundStart: { ...DEFAULT_THEME.backgroundStart },
-  backgroundEnd: { ...DEFAULT_THEME.backgroundEnd }
+  backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
+  glossStrength: DEFAULT_THEME.glossStrength
 };
 let activePicker = "";
 let tempColor = { r: 0, g: 0, b: 0 };
@@ -132,14 +136,19 @@ function loadThemeFromCookie() {
       cardStart: normalizeRgb(parsed.cardStart, DEFAULT_THEME.cardStart),
       cardEnd: normalizeRgb(parsed.cardEnd, DEFAULT_THEME.cardEnd),
       backgroundStart: normalizeRgb(parsed.backgroundStart, DEFAULT_THEME.backgroundStart),
-      backgroundEnd: normalizeRgb(parsed.backgroundEnd, DEFAULT_THEME.backgroundEnd)
+      backgroundEnd: normalizeRgb(parsed.backgroundEnd, DEFAULT_THEME.backgroundEnd),
+      glossStrength: clamp(Number(parsed.glossStrength), 0, 100)
     };
+    if (!Number.isFinite(theme.glossStrength)) {
+      theme.glossStrength = DEFAULT_THEME.glossStrength;
+    }
   } catch (_error) {
     theme = {
       cardStart: { ...DEFAULT_THEME.cardStart },
       cardEnd: { ...DEFAULT_THEME.cardEnd },
       backgroundStart: { ...DEFAULT_THEME.backgroundStart },
-      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd }
+      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
+      glossStrength: DEFAULT_THEME.glossStrength
     };
   }
 }
@@ -151,6 +160,25 @@ function applyTheme() {
   cardEndColorSwatch.style.background = rgbToCss(theme.cardEnd);
   bgStartColorSwatch.style.background = rgbToCss(theme.backgroundStart);
   bgEndColorSwatch.style.background = rgbToCss(theme.backgroundEnd);
+
+  const strength = clamp(Number(theme.glossStrength), 0, 100);
+  const ratio = strength / 100;
+  const glossTop = (0.14 + ratio * 0.22).toFixed(3);
+  const glossMid = (0.06 + ratio * 0.12).toFixed(3);
+  const glossBorder = (0.12 + ratio * 0.24).toFixed(3);
+  const glossGlow = (0.10 + ratio * 0.34).toFixed(3);
+
+  document.documentElement.style.setProperty("--card-gloss-top", `rgba(255, 255, 255, ${glossTop})`);
+  document.documentElement.style.setProperty("--card-gloss-mid", `rgba(255, 255, 255, ${glossMid})`);
+  document.documentElement.style.setProperty("--card-gloss-border", `rgba(255, 255, 255, ${glossBorder})`);
+  document.documentElement.style.setProperty("--card-glow", `rgba(226, 255, 248, ${glossGlow})`);
+
+  if (glossSlider) {
+    glossSlider.value = String(strength);
+  }
+  if (glossValue) {
+    glossValue.textContent = `${strength}%`;
+  }
 }
 
 function toggleSettingsPanel() {
@@ -256,8 +284,8 @@ function loadCardsFromCookie() {
   }
 }
 
-function colorForIndex(index) {
-  const total = Math.max(cards.length - 1, 1);
+function colorForIndex(index, totalItems) {
+  const total = Math.max(totalItems - 1, 1);
   const factor = clamp(index / total, 0, 1);
   const mixed = mixColor(theme.cardStart, theme.cardEnd, factor);
   return rgbToCss(mixed);
@@ -373,11 +401,11 @@ async function refreshRepoMeta() {
   updateTimestamp();
 }
 
-function createCountCard(card, index) {
+function createCountCard(card, index, totalItems) {
   const row = document.createElement("article");
   row.className = "card";
   row.dataset.id = card.id;
-  row.style.background = colorForIndex(index);
+  row.style.background = colorForIndex(index, totalItems);
 
   const isEditing = editingCardId === card.id;
   if (isEditing) {
@@ -388,7 +416,7 @@ function createCountCard(card, index) {
   countEl.className = "count";
   countEl.textContent = String(card.count);
 
-  const minusBtn = createButton("-", () => {
+  const minusBtn = createButton("−", () => {
     playPressAnimations(minusBtn, countEl);
     setTimeout(() => {
       card.count = Math.max(1, card.count - 1);
@@ -406,7 +434,7 @@ function createCountCard(card, index) {
   });
   plusBtn.classList.add("plus-btn");
 
-  const deleteBtn = createButton("🗑", () => {
+  const deleteBtn = createButton("🗑️", () => {
     cards = cards.filter((item) => item.id !== card.id);
     if (editingCardId === card.id) {
       editingCardId = "";
@@ -417,7 +445,7 @@ function createCountCard(card, index) {
   deleteBtn.title = "删除这张卡片";
   deleteBtn.setAttribute("aria-label", "删除这张卡片");
 
-  const editBtn = createButton(isEditing ? "✓" : "✎", () => {
+  const editBtn = createButton(isEditing ? "✅" : "✏️", () => {
     if (!isEditing) {
       editingCardId = card.id;
       render();
@@ -481,11 +509,11 @@ function createCountCard(card, index) {
   return row;
 }
 
-function createAddCard() {
+function createAddCard(totalItems) {
   const row = document.createElement("article");
   row.className = "card add-card";
   row.dataset.id = "add-row";
-  row.style.background = colorForIndex(0);
+  row.style.background = colorForIndex(0, totalItems);
 
   const placeholder = document.createElement("div");
   placeholder.className = "count";
@@ -581,9 +609,10 @@ function render() {
 
   sortCards();
   cardsEl.innerHTML = "";
-  cardsEl.appendChild(createAddCard());
+  const totalItems = cards.length + 1;
+  cardsEl.appendChild(createAddCard(totalItems));
   cards.forEach((card, index) => {
-    cardsEl.appendChild(createCountCard(card, index + 1));
+    cardsEl.appendChild(createCountCard(card, index + 1, totalItems));
   });
   animateFlip(beforePositions);
   updateTimestamp();
@@ -594,7 +623,7 @@ function createInitialCards() {
     { id: makeId(), text: "设计主页布局", count: 8 },
     { id: makeId(), text: "优化卡片交互动画", count: 6 },
     { id: makeId(), text: "完善数据读取逻辑", count: 4 },
-    { id: makeId(), text: "准备示例JSON文件", count: 2 }
+    { id: makeId(), text: "准备示例数据", count: 2 }
   ];
 }
 
@@ -608,6 +637,13 @@ function bindSettingEvents() {
   sliderR.addEventListener("input", syncPickerPreview);
   sliderG.addEventListener("input", syncPickerPreview);
   sliderB.addEventListener("input", syncPickerPreview);
+  if (glossSlider) {
+    glossSlider.addEventListener("input", () => {
+      theme.glossStrength = clamp(Number(glossSlider.value), 0, 100);
+      applyTheme();
+      saveThemeToCookie();
+    });
+  }
 
   pickerCancel.addEventListener("click", () => {
     pickerOverlay.classList.add("hidden");
@@ -619,7 +655,8 @@ function bindSettingEvents() {
       cardStart: { ...DEFAULT_THEME.cardStart },
       cardEnd: { ...DEFAULT_THEME.cardEnd },
       backgroundStart: { ...DEFAULT_THEME.backgroundStart },
-      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd }
+      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
+      glossStrength: DEFAULT_THEME.glossStrength
     };
     saveThemeToCookie();
     applyTheme();
