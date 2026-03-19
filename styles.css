@@ -1,5 +1,6 @@
-:root {
-  --page-bg: #5cc970;
+﻿:root {
+  --page-bg-start: #216f96;
+  --page-bg-end: #1f966d;
   --card-radius: 18px;
   --card-width: min(720px, 94vw);
   --card-edge-gap: 14px;
@@ -20,8 +21,8 @@ body {
 }
 
 body {
-  background: var(--page-bg);
-  font-family: "微软雅黑", "Microsoft YaHei", "Segoe UI", "PingFang SC", Arial, sans-serif;
+  background: linear-gradient(120deg, var(--page-bg-start) 0%, var(--page-bg-end) 100%);
+  font-family: "寰蒋闆呴粦", "Microsoft YaHei", "Segoe UI", "PingFang SC", Arial, sans-serif;
   color: #063322;
 }
 
@@ -675,3 +676,4 @@ body {
     width: min(300px, calc(100vw - 20px));
   }
 }
+

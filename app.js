@@ -4,7 +4,8 @@ const updatedAtEl = document.getElementById("updatedAt");
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
 const cardColorSwatch = document.getElementById("cardColorSwatch");
-const bgColorSwatch = document.getElementById("bgColorSwatch");
+const bgStartColorSwatch = document.getElementById("bgStartColorSwatch");
+const bgEndColorSwatch = document.getElementById("bgEndColorSwatch");
 const pickerOverlay = document.getElementById("pickerOverlay");
 const pickerTitle = document.getElementById("pickerTitle");
 const pickerPreview = document.getElementById("pickerPreview");
@@ -33,7 +34,8 @@ const META_FETCH_TIMEOUT_MS = 5000;
 
 const DEFAULT_THEME = {
   cardBase: { r: 0, g: 242, b: 178 },
-  background: { r: 92, g: 201, b: 112 },
+  backgroundStart: { r: 33, g: 111, b: 150 },
+  backgroundEnd: { r: 31, g: 150, b: 109 },
   useGradient: true
 };
 
@@ -43,7 +45,8 @@ let editingCardId = "";
 let repoUpdatedAtText = "仓库更新时间：加载中... · 版本：加载中...";
 let theme = {
   cardBase: { ...DEFAULT_THEME.cardBase },
-  background: { ...DEFAULT_THEME.background },
+  backgroundStart: { ...DEFAULT_THEME.backgroundStart },
+  backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
   useGradient: DEFAULT_THEME.useGradient
 };
 let activePicker = "";
@@ -113,22 +116,26 @@ function loadThemeFromCookie() {
     const parsed = JSON.parse(raw);
     theme = {
       cardBase: normalizeRgb(parsed.cardBase, DEFAULT_THEME.cardBase),
-      background: normalizeRgb(parsed.background, DEFAULT_THEME.background),
+      backgroundStart: normalizeRgb(parsed.backgroundStart, DEFAULT_THEME.backgroundStart),
+      backgroundEnd: normalizeRgb(parsed.backgroundEnd, DEFAULT_THEME.backgroundEnd),
       useGradient: typeof parsed.useGradient === "boolean" ? parsed.useGradient : DEFAULT_THEME.useGradient
     };
   } catch (_error) {
     theme = {
       cardBase: { ...DEFAULT_THEME.cardBase },
-      background: { ...DEFAULT_THEME.background },
+      backgroundStart: { ...DEFAULT_THEME.backgroundStart },
+      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
       useGradient: DEFAULT_THEME.useGradient
     };
   }
 }
 
 function applyTheme() {
-  document.documentElement.style.setProperty("--page-bg", rgbToCss(theme.background));
+  document.documentElement.style.setProperty("--page-bg-start", rgbToCss(theme.backgroundStart));
+  document.documentElement.style.setProperty("--page-bg-end", rgbToCss(theme.backgroundEnd));
   cardColorSwatch.style.background = rgbToCss(theme.cardBase);
-  bgColorSwatch.style.background = rgbToCss(theme.background);
+  bgStartColorSwatch.style.background = rgbToCss(theme.backgroundStart);
+  bgEndColorSwatch.style.background = rgbToCss(theme.backgroundEnd);
 }
 
 function toggleSettingsPanel() {
@@ -152,12 +159,20 @@ function syncPickerPreview() {
 
 function openPicker(type) {
   activePicker = type;
-  const source = type === "card" ? theme.cardBase : theme.background;
+  let source = theme.cardBase;
+  let title = "卡片颜色调节";
+  if (type === "bgStart") {
+    source = theme.backgroundStart;
+    title = "背景起点颜色调节";
+  } else if (type === "bgEnd") {
+    source = theme.backgroundEnd;
+    title = "背景终点颜色调节";
+  }
   tempColor = { ...source };
   sliderR.value = String(tempColor.r);
   sliderG.value = String(tempColor.g);
   sliderB.value = String(tempColor.b);
-  pickerTitle.textContent = type === "card" ? "卡片颜色调节" : "背景颜色调节";
+  pickerTitle.textContent = title;
   syncPickerPreview();
   pickerOverlay.classList.remove("hidden");
 }
@@ -166,8 +181,10 @@ function applyPickerColor() {
   if (activePicker === "card") {
     theme.cardBase = { ...tempColor };
     theme.useGradient = false;
-  } else if (activePicker === "background") {
-    theme.background = { ...tempColor };
+  } else if (activePicker === "bgStart") {
+    theme.backgroundStart = { ...tempColor };
+  } else if (activePicker === "bgEnd") {
+    theme.backgroundEnd = { ...tempColor };
   }
   saveThemeToCookie();
   applyTheme();
@@ -179,7 +196,6 @@ function normalizeEntry(entry) {
   if (!entry || typeof entry !== "object") {
     return null;
   }
-
   const text = typeof entry.text === "string" ? clipText(entry.text.trim()) : "";
   const count = Number(entry.count);
   if (!text || !Number.isInteger(count) || count <= 0) {
@@ -509,7 +525,6 @@ function animateFlip(beforePositions) {
       }
       return;
     }
-
     const afterRect = node.getBoundingClientRect();
     const dx = beforeRect.left - afterRect.left;
     const dy = beforeRect.top - afterRect.top;
@@ -564,7 +579,8 @@ function createInitialCards() {
 function bindSettingEvents() {
   settingsBtn.addEventListener("click", toggleSettingsPanel);
   cardColorSwatch.addEventListener("click", () => openPicker("card"));
-  bgColorSwatch.addEventListener("click", () => openPicker("background"));
+  bgStartColorSwatch.addEventListener("click", () => openPicker("bgStart"));
+  bgEndColorSwatch.addEventListener("click", () => openPicker("bgEnd"));
   sliderR.addEventListener("input", syncPickerPreview);
   sliderG.addEventListener("input", syncPickerPreview);
   sliderB.addEventListener("input", syncPickerPreview);
@@ -575,7 +591,8 @@ function bindSettingEvents() {
   resetThemeBtn.addEventListener("click", () => {
     theme = {
       cardBase: { ...DEFAULT_THEME.cardBase },
-      background: { ...DEFAULT_THEME.background },
+      backgroundStart: { ...DEFAULT_THEME.backgroundStart },
+      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
       useGradient: DEFAULT_THEME.useGradient
     };
     saveThemeToCookie();
