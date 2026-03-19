@@ -243,6 +243,14 @@ body {
   align-self: center;
 }
 
+.card.is-editing .count,
+.card.is-editing .minus-btn,
+.card.is-editing .plus-btn,
+.card.is-editing .edit-btn,
+.card.is-editing .delete-btn {
+  align-self: center;
+}
+
 .edit-btn {
   font-size: 14px;
   font-weight: 700;
