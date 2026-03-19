@@ -3,7 +3,8 @@ const updatedAtEl = document.getElementById("updatedAt");
 
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
-const cardColorSwatch = document.getElementById("cardColorSwatch");
+const cardStartColorSwatch = document.getElementById("cardStartColorSwatch");
+const cardEndColorSwatch = document.getElementById("cardEndColorSwatch");
 const bgStartColorSwatch = document.getElementById("bgStartColorSwatch");
 const bgEndColorSwatch = document.getElementById("bgEndColorSwatch");
 const pickerOverlay = document.getElementById("pickerOverlay");
@@ -15,6 +16,7 @@ const sliderB = document.getElementById("sliderB");
 const valueR = document.getElementById("valueR");
 const valueG = document.getElementById("valueG");
 const valueB = document.getElementById("valueB");
+const pickerHexValue = document.getElementById("pickerHexValue");
 const pickerCancel = document.getElementById("pickerCancel");
 const pickerApply = document.getElementById("pickerApply");
 const resetThemeBtn = document.getElementById("resetThemeBtn");
@@ -26,17 +28,16 @@ const META_CACHE_DAYS = 7;
 const THEME_COOKIE_KEY = "theme_config";
 const MAX_TEXT_LENGTH = 30;
 const MAX_COUNT = 99;
-const BLUE_STEP = 10;
 const REPO_OWNER = "Sylive147";
 const REPO_NAME = "SwiftReminder";
 const REPO_BRANCH = "main";
 const META_FETCH_TIMEOUT_MS = 5000;
 
 const DEFAULT_THEME = {
-  cardBase: { r: 0, g: 242, b: 178 },
+  cardStart: { r: 0, g: 242, b: 118 },
+  cardEnd: { r: 0, g: 182, b: 58 },
   backgroundStart: { r: 33, g: 111, b: 150 },
-  backgroundEnd: { r: 31, g: 150, b: 109 },
-  useGradient: true
+  backgroundEnd: { r: 31, g: 150, b: 109 }
 };
 
 let cards = [];
@@ -44,10 +45,10 @@ let idSeed = 1;
 let editingCardId = "";
 let repoUpdatedAtText = "仓库更新时间：加载中... · 版本：加载中...";
 let theme = {
-  cardBase: { ...DEFAULT_THEME.cardBase },
+  cardStart: { ...DEFAULT_THEME.cardStart },
+  cardEnd: { ...DEFAULT_THEME.cardEnd },
   backgroundStart: { ...DEFAULT_THEME.backgroundStart },
-  backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
-  useGradient: DEFAULT_THEME.useGradient
+  backgroundEnd: { ...DEFAULT_THEME.backgroundEnd }
 };
 let activePicker = "";
 let tempColor = { r: 0, g: 0, b: 0 };
@@ -68,6 +69,19 @@ function makeId() {
 
 function rgbToCss(rgb) {
   return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+}
+
+function rgbToHex(rgb) {
+  const toHex = (v) => clamp(Number(v), 0, 255).toString(16).padStart(2, "0").toUpperCase();
+  return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
+}
+
+function mixColor(start, end, factor) {
+  return {
+    r: Math.round(start.r + (end.r - start.r) * factor),
+    g: Math.round(start.g + (end.g - start.g) * factor),
+    b: Math.round(start.b + (end.b - start.b) * factor)
+  };
 }
 
 function normalizeRgb(obj, fallback) {
@@ -115,17 +129,17 @@ function loadThemeFromCookie() {
   try {
     const parsed = JSON.parse(raw);
     theme = {
-      cardBase: normalizeRgb(parsed.cardBase, DEFAULT_THEME.cardBase),
+      cardStart: normalizeRgb(parsed.cardStart, DEFAULT_THEME.cardStart),
+      cardEnd: normalizeRgb(parsed.cardEnd, DEFAULT_THEME.cardEnd),
       backgroundStart: normalizeRgb(parsed.backgroundStart, DEFAULT_THEME.backgroundStart),
-      backgroundEnd: normalizeRgb(parsed.backgroundEnd, DEFAULT_THEME.backgroundEnd),
-      useGradient: typeof parsed.useGradient === "boolean" ? parsed.useGradient : DEFAULT_THEME.useGradient
+      backgroundEnd: normalizeRgb(parsed.backgroundEnd, DEFAULT_THEME.backgroundEnd)
     };
   } catch (_error) {
     theme = {
-      cardBase: { ...DEFAULT_THEME.cardBase },
+      cardStart: { ...DEFAULT_THEME.cardStart },
+      cardEnd: { ...DEFAULT_THEME.cardEnd },
       backgroundStart: { ...DEFAULT_THEME.backgroundStart },
-      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
-      useGradient: DEFAULT_THEME.useGradient
+      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd }
     };
   }
 }
@@ -133,7 +147,8 @@ function loadThemeFromCookie() {
 function applyTheme() {
   document.documentElement.style.setProperty("--page-bg-start", rgbToCss(theme.backgroundStart));
   document.documentElement.style.setProperty("--page-bg-end", rgbToCss(theme.backgroundEnd));
-  cardColorSwatch.style.background = rgbToCss(theme.cardBase);
+  cardStartColorSwatch.style.background = rgbToCss(theme.cardStart);
+  cardEndColorSwatch.style.background = rgbToCss(theme.cardEnd);
   bgStartColorSwatch.style.background = rgbToCss(theme.backgroundStart);
   bgEndColorSwatch.style.background = rgbToCss(theme.backgroundEnd);
 }
@@ -155,13 +170,17 @@ function syncPickerPreview() {
   valueG.textContent = String(tempColor.g);
   valueB.textContent = String(tempColor.b);
   pickerPreview.style.background = rgbToCss(tempColor);
+  pickerHexValue.value = rgbToHex(tempColor);
 }
 
 function openPicker(type) {
   activePicker = type;
-  let source = theme.cardBase;
-  let title = "卡片颜色调节";
-  if (type === "bgStart") {
+  let source = theme.cardStart;
+  let title = "卡片起点颜色调节";
+  if (type === "cardEnd") {
+    source = theme.cardEnd;
+    title = "卡片终点颜色调节";
+  } else if (type === "bgStart") {
     source = theme.backgroundStart;
     title = "背景起点颜色调节";
   } else if (type === "bgEnd") {
@@ -178,9 +197,10 @@ function openPicker(type) {
 }
 
 function applyPickerColor() {
-  if (activePicker === "card") {
-    theme.cardBase = { ...tempColor };
-    theme.useGradient = false;
+  if (activePicker === "cardStart") {
+    theme.cardStart = { ...tempColor };
+  } else if (activePicker === "cardEnd") {
+    theme.cardEnd = { ...tempColor };
   } else if (activePicker === "bgStart") {
     theme.backgroundStart = { ...tempColor };
   } else if (activePicker === "bgEnd") {
@@ -237,8 +257,10 @@ function loadCardsFromCookie() {
 }
 
 function colorForIndex(index) {
-  const blue = theme.useGradient ? clamp(theme.cardBase.b - index * BLUE_STEP, 0, 255) : theme.cardBase.b;
-  return `rgb(${theme.cardBase.r}, ${theme.cardBase.g}, ${blue})`;
+  const total = Math.max(cards.length - 1, 1);
+  const factor = clamp(index / total, 0, 1);
+  const mixed = mixColor(theme.cardStart, theme.cardEnd, factor);
+  return rgbToCss(mixed);
 }
 
 function sortCards() {
@@ -355,7 +377,7 @@ function createCountCard(card, index) {
   const row = document.createElement("article");
   row.className = "card";
   row.dataset.id = card.id;
-  row.style.backgroundColor = colorForIndex(index);
+  row.style.background = colorForIndex(index);
 
   const isEditing = editingCardId === card.id;
   if (isEditing) {
@@ -463,7 +485,7 @@ function createAddCard() {
   const row = document.createElement("article");
   row.className = "card add-card";
   row.dataset.id = "add-row";
-  row.style.backgroundColor = colorForIndex(0);
+  row.style.background = colorForIndex(0);
 
   const placeholder = document.createElement("div");
   placeholder.className = "count";
@@ -578,22 +600,26 @@ function createInitialCards() {
 
 function bindSettingEvents() {
   settingsBtn.addEventListener("click", toggleSettingsPanel);
-  cardColorSwatch.addEventListener("click", () => openPicker("card"));
+  cardStartColorSwatch.addEventListener("click", () => openPicker("cardStart"));
+  cardEndColorSwatch.addEventListener("click", () => openPicker("cardEnd"));
   bgStartColorSwatch.addEventListener("click", () => openPicker("bgStart"));
   bgEndColorSwatch.addEventListener("click", () => openPicker("bgEnd"));
+
   sliderR.addEventListener("input", syncPickerPreview);
   sliderG.addEventListener("input", syncPickerPreview);
   sliderB.addEventListener("input", syncPickerPreview);
+
   pickerCancel.addEventListener("click", () => {
     pickerOverlay.classList.add("hidden");
   });
   pickerApply.addEventListener("click", applyPickerColor);
+
   resetThemeBtn.addEventListener("click", () => {
     theme = {
-      cardBase: { ...DEFAULT_THEME.cardBase },
+      cardStart: { ...DEFAULT_THEME.cardStart },
+      cardEnd: { ...DEFAULT_THEME.cardEnd },
       backgroundStart: { ...DEFAULT_THEME.backgroundStart },
-      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
-      useGradient: DEFAULT_THEME.useGradient
+      backgroundEnd: { ...DEFAULT_THEME.backgroundEnd }
     };
     saveThemeToCookie();
     applyTheme();

@@ -110,7 +110,11 @@ body {
   column-gap: var(--card-edge-gap);
   row-gap: 8px;
   padding: var(--card-edge-gap);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 18px rgba(255, 255, 255, 0.18);
   color: #00381e;
   will-change: transform;
   transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease, box-shadow 200ms ease;
@@ -641,8 +645,22 @@ body {
 .picker-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
   margin-top: 2px;
+}
+
+.color-value-input {
+  flex: 1;
+  min-width: 112px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid rgba(0, 60, 36, 0.24);
+  background: #ffffff;
+  color: #12563a;
+  padding: 0 10px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 .mini-btn {
