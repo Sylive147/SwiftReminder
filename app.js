@@ -9,6 +9,8 @@ const bgStartColorSwatch = document.getElementById("bgStartColorSwatch");
 const bgEndColorSwatch = document.getElementById("bgEndColorSwatch");
 const glossSlider = document.getElementById("glossSlider");
 const glossValue = document.getElementById("glossValue");
+const glassSlider = document.getElementById("glassSlider");
+const glassValue = document.getElementById("glassValue");
 const pickerOverlay = document.getElementById("pickerOverlay");
 const pickerTitle = document.getElementById("pickerTitle");
 const pickerPreview = document.getElementById("pickerPreview");
@@ -40,7 +42,8 @@ const DEFAULT_THEME = {
   cardEnd: { r: 168, g: 224, b: 209 },
   backgroundStart: { r: 33, g: 111, b: 150 },
   backgroundEnd: { r: 31, g: 150, b: 109 },
-  glossStrength: 40
+  glossStrength: 40,
+  glassStrength: 58
 };
 
 let cards = [];
@@ -52,7 +55,8 @@ let theme = {
   cardEnd: { ...DEFAULT_THEME.cardEnd },
   backgroundStart: { ...DEFAULT_THEME.backgroundStart },
   backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
-  glossStrength: DEFAULT_THEME.glossStrength
+  glossStrength: DEFAULT_THEME.glossStrength,
+  glassStrength: DEFAULT_THEME.glassStrength
 };
 let activePicker = "";
 let tempColor = { r: 0, g: 0, b: 0 };
@@ -137,10 +141,14 @@ function loadThemeFromCookie() {
       cardEnd: normalizeRgb(parsed.cardEnd, DEFAULT_THEME.cardEnd),
       backgroundStart: normalizeRgb(parsed.backgroundStart, DEFAULT_THEME.backgroundStart),
       backgroundEnd: normalizeRgb(parsed.backgroundEnd, DEFAULT_THEME.backgroundEnd),
-      glossStrength: clamp(Number(parsed.glossStrength), 0, 100)
+      glossStrength: clamp(Number(parsed.glossStrength), 0, 100),
+      glassStrength: clamp(Number(parsed.glassStrength), 0, 100)
     };
     if (!Number.isFinite(theme.glossStrength)) {
       theme.glossStrength = DEFAULT_THEME.glossStrength;
+    }
+    if (!Number.isFinite(theme.glassStrength)) {
+      theme.glassStrength = DEFAULT_THEME.glassStrength;
     }
   } catch (_error) {
     theme = {
@@ -148,7 +156,8 @@ function loadThemeFromCookie() {
       cardEnd: { ...DEFAULT_THEME.cardEnd },
       backgroundStart: { ...DEFAULT_THEME.backgroundStart },
       backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
-      glossStrength: DEFAULT_THEME.glossStrength
+      glossStrength: DEFAULT_THEME.glossStrength,
+      glassStrength: DEFAULT_THEME.glassStrength
     };
   }
 }
@@ -167,17 +176,31 @@ function applyTheme() {
   const glossMid = (0.06 + ratio * 0.12).toFixed(3);
   const glossBorder = (0.16 + ratio * 0.26).toFixed(3);
   const glossGlow = (0.10 + ratio * 0.34).toFixed(3);
+  const glassStrength = clamp(Number(theme.glassStrength), 0, 100);
+  const glassRatio = glassStrength / 100;
+  const glassBlur = (5 + glassRatio * 11).toFixed(1);
+  const glassSaturate = (1.02 + glassRatio * 0.24).toFixed(2);
+  const chromaAlpha = (0.018 + glassRatio * 0.07).toFixed(3);
 
   document.documentElement.style.setProperty("--card-gloss-top", `rgba(255, 255, 255, ${glossTop})`);
   document.documentElement.style.setProperty("--card-gloss-mid", `rgba(255, 255, 255, ${glossMid})`);
   document.documentElement.style.setProperty("--card-gloss-border", `rgba(255, 255, 255, ${glossBorder})`);
   document.documentElement.style.setProperty("--card-glow", `rgba(226, 255, 248, ${glossGlow})`);
+  document.documentElement.style.setProperty("--card-blur", `${glassBlur}px`);
+  document.documentElement.style.setProperty("--card-saturate", glassSaturate);
+  document.documentElement.style.setProperty("--card-chroma-alpha", chromaAlpha);
 
   if (glossSlider) {
     glossSlider.value = String(strength);
   }
   if (glossValue) {
     glossValue.textContent = `${strength}%`;
+  }
+  if (glassSlider) {
+    glassSlider.value = String(glassStrength);
+  }
+  if (glassValue) {
+    glassValue.textContent = `${glassStrength}%`;
   }
 }
 
@@ -288,7 +311,9 @@ function colorForIndex(index, totalItems) {
   const total = Math.max(totalItems - 1, 1);
   const factor = clamp(index / total, 0, 1);
   const mixed = mixColor(theme.cardStart, theme.cardEnd, factor);
-  return `rgba(${mixed.r}, ${mixed.g}, ${mixed.b}, 0.62)`;
+  const glassRatio = clamp(Number(theme.glassStrength), 0, 100) / 100;
+  const alpha = (0.74 - glassRatio * 0.2).toFixed(3);
+  return `rgba(${mixed.r}, ${mixed.g}, ${mixed.b}, ${alpha})`;
 }
 
 function sortCards() {
@@ -644,6 +669,14 @@ function bindSettingEvents() {
       saveThemeToCookie();
     });
   }
+  if (glassSlider) {
+    glassSlider.addEventListener("input", () => {
+      theme.glassStrength = clamp(Number(glassSlider.value), 0, 100);
+      applyTheme();
+      render();
+      saveThemeToCookie();
+    });
+  }
 
   pickerCancel.addEventListener("click", () => {
     pickerOverlay.classList.add("hidden");
@@ -656,7 +689,8 @@ function bindSettingEvents() {
       cardEnd: { ...DEFAULT_THEME.cardEnd },
       backgroundStart: { ...DEFAULT_THEME.backgroundStart },
       backgroundEnd: { ...DEFAULT_THEME.backgroundEnd },
-      glossStrength: DEFAULT_THEME.glossStrength
+      glossStrength: DEFAULT_THEME.glossStrength,
+      glassStrength: DEFAULT_THEME.glassStrength
     };
     saveThemeToCookie();
     applyTheme();
