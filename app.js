@@ -288,7 +288,7 @@ function colorForIndex(index, totalItems) {
   const total = Math.max(totalItems - 1, 1);
   const factor = clamp(index / total, 0, 1);
   const mixed = mixColor(theme.cardStart, theme.cardEnd, factor);
-  return rgbToCss(mixed);
+  return `rgba(${mixed.r}, ${mixed.g}, ${mixed.b}, 0.68)`;
 }
 
 function sortCards() {
