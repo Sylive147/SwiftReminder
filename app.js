@@ -165,7 +165,7 @@ function applyTheme() {
   const ratio = strength / 100;
   const glossTop = (0.14 + ratio * 0.22).toFixed(3);
   const glossMid = (0.06 + ratio * 0.12).toFixed(3);
-  const glossBorder = (0.12 + ratio * 0.24).toFixed(3);
+  const glossBorder = (0.16 + ratio * 0.26).toFixed(3);
   const glossGlow = (0.10 + ratio * 0.34).toFixed(3);
 
   document.documentElement.style.setProperty("--card-gloss-top", `rgba(255, 255, 255, ${glossTop})`);
@@ -288,7 +288,7 @@ function colorForIndex(index, totalItems) {
   const total = Math.max(totalItems - 1, 1);
   const factor = clamp(index / total, 0, 1);
   const mixed = mixColor(theme.cardStart, theme.cardEnd, factor);
-  return `rgba(${mixed.r}, ${mixed.g}, ${mixed.b}, 0.68)`;
+  return `rgba(${mixed.r}, ${mixed.g}, ${mixed.b}, 0.62)`;
 }
 
 function sortCards() {
