@@ -75,6 +75,10 @@ function makeId() {
   return id;
 }
 
+function makeCreatedAt() {
+  return Date.now() * 1000 + idSeed;
+}
+
 function rgbToCss(rgb) {
   return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
 }
@@ -263,7 +267,7 @@ function applyPickerColor() {
   pickerOverlay.classList.add("hidden");
 }
 
-function normalizeEntry(entry) {
+function normalizeEntry(entry, index = 0) {
   if (!entry || typeof entry !== "object") {
     return null;
   }
@@ -272,18 +276,21 @@ function normalizeEntry(entry) {
   if (!text || !Number.isInteger(count) || count <= 0) {
     return null;
   }
-  return { id: makeId(), text, count: Math.min(count, MAX_COUNT) };
+  const rawCreatedAt = Number(entry.createdAt);
+  const fallbackCreatedAt = Date.now() * 1000 - (1000 - index);
+  const createdAt = Number.isFinite(rawCreatedAt) && rawCreatedAt > 0 ? rawCreatedAt : fallbackCreatedAt;
+  return { id: makeId(), text, count: Math.min(count, MAX_COUNT), createdAt };
 }
 
 function normalizeData(raw) {
   if (!Array.isArray(raw)) {
     return [];
   }
-  return raw.map(normalizeEntry).filter(Boolean);
+  return raw.map((entry, index) => normalizeEntry(entry, index)).filter(Boolean);
 }
 
 function toSerializableData() {
-  return cards.map((card) => ({ text: card.text, count: card.count }));
+  return cards.map((card) => ({ text: card.text, count: card.count, createdAt: card.createdAt }));
 }
 
 function saveCardsToCookie() {
@@ -317,7 +324,7 @@ function colorForIndex(index, totalItems) {
 }
 
 function sortCards() {
-  cards.sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
+  cards.sort((a, b) => b.count - a.count || b.createdAt - a.createdAt || b.id.localeCompare(a.id));
 }
 
 function createButton(label, onClick) {
@@ -559,7 +566,7 @@ function createAddCard(totalItems) {
     if (!text) {
       return;
     }
-    cards.push({ id: makeId(), text, count: 1 });
+    cards.push({ id: makeId(), text, count: 1, createdAt: makeCreatedAt() });
     input.value = "";
     saveCardsToCookie();
     render();
@@ -645,10 +652,10 @@ function render() {
 
 function createInitialCards() {
   return [
-    { id: makeId(), text: "设计主页布局", count: 8 },
-    { id: makeId(), text: "优化卡片交互动画", count: 6 },
-    { id: makeId(), text: "完善数据读取逻辑", count: 4 },
-    { id: makeId(), text: "准备示例数据", count: 2 }
+    { id: makeId(), text: "设计主页布局", count: 8, createdAt: makeCreatedAt() },
+    { id: makeId(), text: "优化卡片交互动画", count: 6, createdAt: makeCreatedAt() },
+    { id: makeId(), text: "完善数据读取逻辑", count: 4, createdAt: makeCreatedAt() },
+    { id: makeId(), text: "准备示例数据", count: 2, createdAt: makeCreatedAt() }
   ];
 }
 
